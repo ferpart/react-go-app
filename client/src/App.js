@@ -7,7 +7,7 @@ function App() {
   useEffect(() => {
     async function checkAPIRoute() {
       try {
-        const host = process.env.REACT_APP_HOST;
+        const host = process.env.REACT_APP_HOST || 'http://localhost';
         const response = await fetch(`${host}/api`);
         if (response.status === 200) {
           setResponse('a Success!!!');
