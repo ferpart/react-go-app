@@ -154,6 +154,7 @@ resource "aws_instance" "web-server-instance" {
                     $(lsb_release -cs) \
                     stable"
                 sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+                sudo apt-get install docker-compose -y
               EOF
 
   tags = {
