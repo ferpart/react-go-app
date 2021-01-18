@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  front-end:
+    build: ./client
+    env_file: ./client/.env
+    container_name: front-end
+    stdin_open: true
+    tty: true
+    ports:
+      - '3000:3000'
+
+  back-end:
+    build: ./api
+    container_name: back-end
+    ports:
+      - '5000:5000'
