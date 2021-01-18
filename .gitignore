@@ -15,7 +15,7 @@ package-lock.json
 /coverage
 
 # environment
-# .env
+.env
 
 # production
 /client/build
@@ -26,7 +26,7 @@ package-lock.json
 .env.development.local
 .env.test.local
 .env.production.local
-.set-vars.sh
+.set_vars.sh
 
 npm-debug.log*
 yarn-debug.log*
