@@ -85,14 +85,6 @@ resource "aws_security_group" "allow_web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "MONGODB"
-    from_port   = 27017
-    to_port     = 27017
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -122,16 +114,45 @@ resource "aws_eip" "one" {
   depends_on = [aws_internet_gateway.gw]
 }
 
-output "server_public_ip" {
-    value = aws_eip.one.public_ip
+# 9. Create IAM role for continious development github actions
+resource "aws_iam_role" "iam_actions_role" {
+  name = "AWSIAMGithubActionsRole"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
 }
 
-# 9. Create Ubuntu server and install/enable apache 2
+# 10. Attach role to policy
+resource "aws_iam_role_policy_attachment" "ssm_full_access" {
+  role = aws_iam_role.iam_actions_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+}
+
+# 11. Create EC2 Instance Profile
+resource "aws_iam_instance_profile" "iam_instance_profile" {
+  name = "iam_instance_profile"
+  role = aws_iam_role.iam_actions_role.name
+}
+
+# 12. Create Ubuntu server and install/docker
 resource "aws_instance" "web-server-instance" {
   ami           = "ami-00ddb0e5626798373"
   instance_type = "t2.micro"
   availability_zone = "us-east-1a"
   key_name = "main-key"
+  iam_instance_profile = aws_iam_instance_profile.iam_instance_profile.name
 
   network_interface {
       device_index = 0
@@ -155,10 +176,27 @@ resource "aws_instance" "web-server-instance" {
                     stable"
                 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
                 sudo apt-get -y install docker-compose
-                git clone https://github.com/ferpart/react-go-app.git
               EOF
 
   tags = {
     Name = "prod-server"
   }
+}
+
+# resource "local_file" "aws_outputs" {
+#   filename = "../.aws_outputs.sh"
+#   content = <<-EOT
+#     #!/bin/bash
+#     # command 	: . ./.aws_outputs.sh 
+#     export SERVER_PUBLIC_IP = "${ aws_eip.one.public_ip }"
+#     export INSTANCE_ID = "${ aws_instance.web-server-instance.id }"
+#   EOT
+# }
+
+output "server_public_ip" {
+  value = aws_eip.one.public_ip
+}
+
+output "instance_id" {
+  value = aws_instance.web-server-instance.id
 }
