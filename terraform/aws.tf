@@ -155,6 +155,7 @@ resource "aws_instance" "web-server-instance" {
                     stable"
                 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
                 sudo apt-get -y install docker-compose
+                git clone https://github.com/ferpart/react-go-app.git
               EOF
 
   tags = {
